@@ -13,17 +13,17 @@ function ProjectCard({ survey, isActive, onActivePicker }) {
                 <div className="flex items-center gap-1 p-2 text-xl text-gray-darker overflow-hidden">
                     <FaWpforms className="text-primary-normal absolute" />
                     <p className="ml-6">{survey.title}</p>
-                    <div className="hidden group-hover:flex items-center justify-center absolute right-2 h-8 w-8 p-1 bg-gray-200 border border-gray-200 rounded-2xl cursor-pointer">
+                    <div className="flex items-center justify-center absolute right-2 h-8 w-8 p-1 bg-gray-200 border border-gray-200 rounded-2xl cursor-pointer">
                         <FaRegStar className="text-gray-400" />
                     </div>
                 </div>
 
                 <div className="flex-1 bg-white"></div>
 
-                <div className="hidden group-hover:flex items-center justify-between p-2">
+                <div className="flex items-center justify-between p-2">
 
-                    <Link to={`/Editor/${survey.id}`}>
-                        <button className="bg-primary py-2 px-3 text-white rounded">Openen</button>
+                    <Link className="answersLink" to={`/Editor/${survey.id}`}>
+                        <button id={survey.id} className="bg-primary py-2 px-3 text-white rounded">Openen</button>
                     </Link>
 
 

@@ -53,14 +53,14 @@ function Edit() {
         }
 
         async function UpdateStyle() {
-            const { data, error } = await supabase
-                .from('SurveyStyles2')
-                .update(updatedSurveyStyle)
-                .eq('id', updatedSurveyStyle.id)
+            // const { data, error } = await supabase
+            //     .from('SurveyStyles2')
+            //     .update(updatedSurveyStyle)
+            //     .eq('id', updatedSurveyStyle.id)
 
-            if (error) throw error;
+            // if (error) throw error;
 
-            dispatch(updateSurveyStyles(updatedSurveyStyle));
+            // dispatch(updateSurveyStyles(updatedSurveyStyle));
 
         }
 

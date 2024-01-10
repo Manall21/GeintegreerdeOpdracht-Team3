@@ -53,7 +53,7 @@ const Question = React.forwardRef(({ question }, ref) => {
 
             const { error } = await supabase.from('Questions2').update(copyOfQuestion).eq('id', question.id).single()
 
-            if (error) throw error;
+            // if (error) throw error;
         }
         catch (error) {
             console.log(error);
@@ -104,7 +104,7 @@ const Question = React.forwardRef(({ question }, ref) => {
                 const { data, error } = await supabase.from('Answers2').select('*').eq('questionId', question.id).order('orderNr', { ascending: true })
 
                 if (error) {
-                    throw error
+                    // throw error
                 }
 
                 if (data) {
@@ -191,7 +191,7 @@ const Question = React.forwardRef(({ question }, ref) => {
                                 value={updatedQuestion.questionContent}
                                 onChange={(newValue) => setUpdatedQuestion(prev => ({ ...prev, questionContent: newValue }))}
                                 setStyling={true}
-                                className={`${surveyStyle.questionFontFamily} text-${surveyStyle.questionFontSize} ${updatedQuestion.isBold ? "font-bold" : "font-normal"}  ${updatedQuestion.isCursive ? "italic" : "not-italic"} ${updatedQuestion.isUnderlined ? "underline" : "no-underline"}`}
+                                // className={`${surveyStyle.questionFontFamily} text-${surveyStyle.questionFontSize} ${updatedQuestion.isBold ? "font-bold" : "font-normal"}  ${updatedQuestion.isCursive ? "italic" : "not-italic"} ${updatedQuestion.isUnderlined ? "underline" : "no-underline"}`}
                                 onButtonClicks={{
                                     Bold: () => setUpdatedQuestion(prev => ({ ...prev, isBold: !updatedQuestion.isBold })),
                                     Cursive: () => setUpdatedQuestion(prev => ({ ...prev, isCursive: !updatedQuestion.isCursive })),

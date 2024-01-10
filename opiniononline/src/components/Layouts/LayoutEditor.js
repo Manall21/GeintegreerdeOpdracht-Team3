@@ -11,7 +11,7 @@ function LayoutCreate() {
 
         <div className="flex">
             <div className="h-[calc(100vh-5rem)] overflow-y-auto sticky top-20 hidden lg:block w-50 border border-t-0 ">
-                <Nav className="" menuItems={menuItems} />
+                <Nav className={menuItems.name} menuItems={menuItems} />
             </div>
             <main className="flex-1 ">
                 <Outlet/>

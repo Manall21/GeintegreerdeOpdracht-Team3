@@ -60,9 +60,11 @@ function Login() {
 
             <form className='text-start' onSubmit={handleSubmit}>
               <div>
-                <label className='text-xl'>Email</label>
+                <label for="email_input" className='text-xl'>Email</label>
                 <Input
                   size="lg"
+                  id="email_input"
+                  name="email_input"
                   placeholder="Voer uw email in"
                   className=" !border-t-blue-gray-200 focus:!border-green-300 mt-1 text-xl !py-6 dark:border-dark-border"
                   labelProps={{
@@ -74,10 +76,12 @@ function Login() {
               </div>
 
               <div className='mt-10'>
-                <label className='text-xl'>Paswoord</label>
+                <label for="password_input" className='text-xl'>Paswoord</label>
                 <Input
                   size="lg"
                   type='password'
+                  id="password_input"
+                  name="password_input"
                   className=" !border-t-blue-gray-200 focus:!border-green-300 mt-1 text-xl !py-6 dark:border-dark-border"
                   labelProps={{
                     className: "before:content-none after:content-none",
@@ -95,7 +99,7 @@ function Login() {
               </p>
 
 
-              <Button type='submit' size='lg' className='w-full mt-8 bg-primary dark:bg-dark-green-normal'>Log in</Button>
+              <Button type='submit' id='submit_btn' size='lg' className='w-full mt-8 bg-primary dark:bg-dark-green-normal'>Log in</Button>
 
               {/* ... (andere buttons) */}
 

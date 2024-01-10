@@ -45,8 +45,6 @@ function Nav({ className, menuItems }) {
                                 <NavItemSimple item={item} className={`block text-start text-l p-6 border-b ${(activeLink === item.link) || (isIndexRoute && item.name === 'Projecten') ? 'bg-primary text-white' : ''}`} />
                         }
 
-
-
                     </li>
                 ))}
                 

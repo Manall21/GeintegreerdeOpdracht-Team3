@@ -15,7 +15,6 @@ import Preview from './pages/Preview';
 import ForgotPasswordPage from './components/ForgotPasswordPage';
 import ResetPassword from './pages/ResetPassword';
 
-
 export const userContext = createContext();
 
 
