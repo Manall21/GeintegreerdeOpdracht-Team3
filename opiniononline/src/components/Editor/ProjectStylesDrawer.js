@@ -17,10 +17,10 @@ function ProjectStylesDrawer({className}) {
     const closeDrawer = () => setOpen(false);
 
     return (
-        <div className={className}>
+        <div className={`${className}`}>
             <CustomIconButton onClick={openDrawer} icon={FaPalette} message={"Stijl aanpassen"} placement="bottom"></CustomIconButton>
             <Drawer open={open} onClose={closeDrawer} className="p-4" placement="right" size={500}>
-                <ProjectStyles className={'text-xl'}/>
+                <ProjectStyles  className={'text-xl'}/>
             </Drawer>
         </div>
     );

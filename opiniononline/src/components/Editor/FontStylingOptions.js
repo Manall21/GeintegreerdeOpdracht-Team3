@@ -1,25 +1,32 @@
 import { Option, Select } from "@material-tailwind/react";
-import { FaBold, FaItalic, FaUnderline } from "react-icons/fa"; // Update the path to your icons
+import { FaBold, FaItalic, FaPalette, FaUnderline } from "react-icons/fa"; // Update the path to your icons
 import IconButton from "../IconButton";
+import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 
 function FontStylingOptions({
   label,
   values,
   onSelectChanges,
-  onButtonClicks, 
+  onButtonClicks,
+  onChangeColor,
   showButtons = true
 }) {
 
+  const classNameButtons = "bg-primary text-white";
 
-    const classNameButtons = "bg-primary text-white";
+  const [test, setTest] = useState("#ffffff");
+
+  useEffect(()=> {
+    console.log(test);
+  }, [test])
+
   return (
     <div className="p-3">
       <p className="font-semibold">{label}</p>
-      <div className="mt-1">
+      <div className="mt-5">
         <Select
-          labelProps={{
-            className: 'before:mr-0 after:ml-0 before:pr-0 after:pl-0',
-          }}
+         label="Font Family"
           value={values?.fontFamily}
           onChange={(newValue) => onSelectChanges.onFontFamilyChange(newValue)}
         >
@@ -28,12 +35,9 @@ function FontStylingOptions({
           <Option value="font-mono">font-mono</Option>
         </Select>
         <Select
-          value={values?.fontSize}
-          labelProps={{
-            className: 'before:mr-0 after:ml-0 before:pr-0 after:pl-0',
-          }}
+         label="Font Size"
           containerProps={{
-            className: '!mt-2',
+            className: '!mt-7',
           }}
           onChange={(newValue) => onSelectChanges.onFontSizeChange(newValue)}
         >
@@ -43,29 +47,46 @@ function FontStylingOptions({
           <Option value="4xl">4xl</Option>
         </Select>
 
-        <div className={`${showButtons ? " flex": "hidden"} gap-2 mt-4 text-xl`}>
+        <div className={`${showButtons ? " flex" : "hidden"} gap-2 mt-4 text-xl`}>
           <IconButton
             icon={FaBold}
             message={'Vet'}
             onClick={() => onButtonClicks.Bold()}
-            className={`${values?.isBold ? classNameButtons : ""}`}
+            className={`dark:text-dark-text ${values?.isBold ? classNameButtons : ""}`}
           />
 
           <IconButton
             icon={FaItalic}
             message={'Cursief'}
             onClick={() => onButtonClicks.Cursive()}
-            className={`${values?.isCursive ? classNameButtons : ""}`}
+            className={`dark:text-dark-text ${values?.isCursive ? classNameButtons : ""}`}
           />
           <IconButton
             icon={FaUnderline}
             message={'Onderstrepen'}
             onClick={() => onButtonClicks.Underlined()}
-            className={`${values?.isUnderlined ? classNameButtons : ""}`}
+            className={`dark:text-dark-text ${values?.isUnderlined ? classNameButtons : ""}`}
           />
         </div>
-      </div>
+
+
+        <div className="mt-4">
+          <input
+            type="color"
+            value={values?.fontColor}
+            onChange={(e)=> onChangeColor(e.target.value)}
+            style={{
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              width: '40px',
+              height: '40px',
+              cursor: 'pointer',
+              padding: '0'
+            }}
+          />
+        </div>
     </div>
+    </div >
   );
 }
 

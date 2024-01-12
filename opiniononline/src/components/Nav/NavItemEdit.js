@@ -7,7 +7,7 @@ function NavItemEdit({ className, item }) {
     const iconsList = [
         { name: 'Edit', icon: FaRegQuestionCircle },
         { name: 'Answers', icon: FaCommentAlt },
-        { name: 'Statistics', icon: FaRegChartBar }
+        { name: 'Feedback', icon: FaRegChartBar }
     ];
 
     const renderIcon = (icon, item) => {

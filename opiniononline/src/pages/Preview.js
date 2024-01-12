@@ -1,359 +1,489 @@
 import { Button, Checkbox, Radio, useSelect } from "@material-tailwind/react";
 import IconButton from "../components/IconButton";
 import { FaPen } from "react-icons/fa";
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import CheckboxGroup from "../components/Preview/CheckboxGroup";
 import RadioButtonGroup from "../components/Preview/RadioButtonGroup";
 import SurveyLogo from "../components/Editor/SurveyLogo"
 import { useDispatch, useSelector } from "react-redux";
-import { fetchLogo, fetchSurveyStyle, updateLogo } from "../slices/surveySlice";
+import { fetchSurveyData, fetchSurveyStyle } from "../slices/surveySlice";
+import SurveyCompletion from "../components/Preview/SurveyCompletion";
+import { userContext } from '../App';
+
 
 function Preview() {
-	const { id } = useParams();
+    const { id } = useParams();
+    const user = useContext(userContext); // Get the user UID using the hook
 
-	const dispatch = useDispatch();
-	const [survey, setSurvey] = useState(null);
 
 
-	const surveyLogo = useSelector(state => state.surveys.logo);
-	const surveyStyle = useSelector(state => state.surveys.surveyStyles)
+    const dispatch = useDispatch();
+    const survey = useSelector(state => state.surveys.survey)
 
 
+    const [isOwner, setIsOwner] = useState(survey?.ownerId === user.id)
 
-	const [activeQuestion, setActiveQuestion] = useState(null);
-	const [activeSection, setActiveSection] = useState(null);
 
-	const [selectedAnswers, setSelectedAnswers] = useState({});
+    const surveyStyle = useSelector(state => state.surveys.surveyStyles)
 
-	const [disablePrevious, setDisablePrevious] = useState(true);
-	const [disableNext, setDisableNext] = useState(true);
 
 
-	const [endOfSurvey, setEndOfSurvey] = useState(false);
+    const [activeQuestion, setActiveQuestion] = useState(null);
 
-	const [path, setPath] = useState([]);
+    const [selectedAnswers, setSelectedAnswers] = useState({});
 
-	useEffect(() => {
-		async function GetSurvey() {
 
-			try {
-				const { data, error } = await supabase.from('Surveys2').select('id, title, logo_name , Sections2(id, sectionOrder, nextSectionId, Questions2(*, Answers2(*)))').eq('id', id).single();
+    const [disablePrevious, setDisablePrevious] = useState(true);
+    const [disableNext, setDisableNext] = useState(true);
 
-				if (error) throw error;
 
+    const [endOfSurvey, setEndOfSurvey] = useState(false);
 
-				if (data) {
+    const [path, setPath] = useState([]);
 
-					setSurvey(data)
 
+    function InitializeSurvey() {
 
 
-					dispatch(fetchLogo(data.logo_name))
+        setPath([]);
+        setEndOfSurvey(false)
+        setDisablePrevious(true)
+        setDisableNext(false)
+        setSelectedAnswers({})
 
 
-					dispatch(fetchSurveyStyle(data.id))
+        let firstSection = FindSectionByOrder(1)
 
-					let firstSection = data.Sections2.find(section => section.sectionOrder === 1)
+        let firstQuestion = FindFirstQuestion(firstSection)
 
-					setActiveQuestion(FindFirstQuestion(firstSection))
-				}
-			}
-			catch (error) {
-				console.log(error)
-			}
+        setActiveQuestion(firstQuestion)
+    }
 
-		}
+    useEffect(() => {
+        async function fetchSurvey() {
+            let data = await supabase.auth.getSession();
 
-		GetSurvey();
-	}, [])
+            dispatch(fetchSurveyStyle(id)).then(() => {
 
+                let token = data.data.session.access_token
+                dispatch(fetchSurveyData({ id: id, token: token }))
+            })
+        }
 
 
+        fetchSurvey();
 
 
-	useEffect(() => {
+    }, [id])
 
+    useEffect(() => {
+        if (survey) {
+            setIsOwner(survey.ownerId === user.id)
 
-		if (activeQuestion != null) {
+            InitializeSurvey();
 
-			const section = FindSectionById(activeQuestion.sectionId)
 
-			setActiveSection(section)
 
+        }
+    }, [survey])
 
-			// When the we are back at the first question, we want to disable the backbutton and set an empty path
-			if (activeQuestion?.questionOrder === 1 && section?.sectionOrder === 1) {
-				setDisablePrevious(true)
-				setPath([])
-			}
 
-		}
 
 
-	}, [activeQuestion])
+    useEffect(() => {
 
+        if (activeQuestion) {
+            const currentSection = FindSectionById(activeQuestion.sectionId)
 
+            // When the we are back at the first question, we want to disable the backbutton and set an empty path
+            if (activeQuestion?.questionOrder === 1 && currentSection?.sectionOrder === 1) {
+                setDisablePrevious(true)
+                setPath([])
+            }
 
-	useEffect(() => {
-		if (endOfSurvey) {
-			SubmitAnswers();
+        }
 
-		}
-	}, [endOfSurvey])
 
+    }, [activeQuestion])
 
-	useEffect(() => {
 
-		let test = selectedAnswers[activeQuestion?.id]
 
-		if (activeQuestion?.answerRequired) {
 
-			if (Array.isArray(test) && test.length > 0) {
-				setDisableNext(false);
-			}
-			else {
-				setDisableNext(true)
-			}
-		}
+    useEffect(() => {
 
-		else {
-			setDisableNext(false)
-		}
+        let selectedAnswer = selectedAnswers[activeQuestion?.id]
 
-	}, [selectedAnswers])
+        if (activeQuestion?.answerRequired) {
+            setDisableNext(selectedAnswer.length === 0);
+        }
+        else {
+            setDisableNext(false)
+        }
 
+    }, [selectedAnswers])
 
-	function NextQuestion() {
 
-		setDisablePrevious(false)
-		setPath(prev => [...prev, activeQuestion?.id])
+    useEffect(() => {
 
+        if(isOwner) return
 
-		let nextSection = null;
-		let nextQuestion = null;
+        SubmitAnswers()
+        sendSurveyCompletion()
 
+    }, [endOfSurvey])
 
+    async function NextQuestion() {
 
-		// When we have a question with radiobuttons it is possible that a radiobutton redirects to another section.
+        setDisablePrevious(false)
 
-		if (activeQuestion.questionKindId === 1 && selectedAnswers[activeQuestion.id][0]?.nextSectionId != null) {
 
-			nextSection = FindSectionById(selectedAnswers[activeQuestion.id][0].nextSectionId)
-			nextQuestion = FindFirstQuestion(nextSection);
-		}
 
+        let currentSection = FindSectionById(activeQuestion.sectionId);
+        let nextSection = null;
+        let nextQuestion = null;
 
-		else {
+        // When we have a question with radiobuttons it is possible that a radiobutton redirects to another section.
 
-			nextQuestion = activeSection.Questions2.find(question => question.questionOrder === activeQuestion.questionOrder + 1)
+        if (activeQuestion.questionKindId === 1 && selectedAnswers[activeQuestion.id] && selectedAnswers[activeQuestion.id][0]?.nextSectionOrder) {
 
+            console.log(selectedAnswers[activeQuestion.id][0]?.nextSectionOrder)
+            if (selectedAnswers[activeQuestion.id][0]?.nextSectionOrder === -1) {
+                setPath(prev => [...prev, activeQuestion])
+                setEndOfSurvey(true)
 
-			// If there is no question left in the current section, we go to the next section
-			if (!nextQuestion) {
+                return
+            }
 
-				if (activeSection.nextSectionId) {
-					nextSection = survey.Sections2.find(section => section.id === activeSection.nextSectionId)
-				}
-				else {
-					nextSection = survey.Sections2.find(section => section.sectionOrder === activeSection.sectionOrder + 1)
+            nextSection = FindSectionByOrder(selectedAnswers[activeQuestion.id][0]?.nextSectionOrder)
 
-				}
+            nextQuestion = FindFirstQuestion(nextSection);
 
+            console.log(nextSection)
 
-				console.log(nextSection)
+        }
 
 
-				// If there is no next section, it means it is the end of the survey
-				if (!nextSection) {
+        else {
 
+            if (currentSection.Questions2.length === activeQuestion.questionOrder) {
 
+                if (currentSection.nextSectionOrder === 0) {
+                    nextSection = FindSectionByOrder(currentSection.sectionOrder + 1);
 
-					setEndOfSurvey(true);
-					return
-				}
+                    if (!nextSection) {
+                        setEndOfSurvey(true);
 
-				nextQuestion = nextSection.Questions2.find(question => question.questionOrder === 1);
+                        setPath(prev => [...prev, activeQuestion])
 
-				console.log(nextQuestion)
 
+                        return
 
-			}
+                    }
 
-		}
+                    nextQuestion = FindFirstQuestion(nextSection)
+                }
 
+                else if (currentSection.nextSectionOrder === -1) {
+                    setEndOfSurvey(true);
 
-		nextQuestion['fromRedirect'] = { sectionId: activeSection.id, questionId: activeQuestion.id };
+                    setPath(prev => [...prev, activeQuestion])
 
-		setActiveQuestion(nextQuestion)
+                    return
+                }
 
-	}
+                else {
+                    console.log('nuuuu')
+                    nextSection = FindSectionByOrder(currentSection.nextSectionOrder);
+                    nextQuestion = FindFirstQuestion(nextSection)
 
+                }
+            }
 
-	function PreviousQuestion() {
 
-		let previousQuestion = null;
+            else {
+                nextQuestion = currentSection.Questions2.find(question => question.questionOrder === activeQuestion.questionOrder + 1)
+            }
 
-		if (endOfSurvey) {
-			setEndOfSurvey(false);
-			return
-		}
+        }
 
 
-		// When we go one question back we need to remove the current question from the path
-		setPath(prev => prev.filter(question => question !== activeQuestion.id))
+        nextQuestion = { ...nextQuestion, fromRedirect: { sectionId: currentSection.id, questionId: activeQuestion.id } };
 
 
+        setPath(prev => [...prev, activeQuestion])
 
 
+        setActiveQuestion(nextQuestion)
 
-		let newActiveSection = FindSectionById(activeQuestion.fromRedirect.sectionId);
-		previousQuestion = newActiveSection.Questions2.find(question => question.id === activeQuestion.fromRedirect.questionId)
+    }
 
 
+    function PreviousQuestion() {
 
-		// If there is no previous question in the current section, we go one section back and take the last question
-		if (!previousQuestion) {
+        let previousQuestion = null;
 
-			let previousSection = survey.Sections2.find(section => section.sectionOrder === activeSection.sectionOrder - 1)
+        if (endOfSurvey) {
+            previousQuestion = path.at(-1)
 
-			previousQuestion = previousSection.Questions2.find(question => question.questionOrder === previousSection.Questions2.length);
-		}
+            console.log('ZZZZ', previousQuestion)
 
+            setEndOfSurvey(false);
+        }
 
-		setActiveQuestion(previousQuestion)
 
-	}
+        else {
 
+            // When we go one question back we need to remove the current question from the path
+            let updatedPath = path.filter(question => question.id !== activeQuestion.id)
 
-	function SubmitAnswers() {
+            previousQuestion = updatedPath.at(-1)
 
-		// Converts the object to an array of [key, value]. We do this so we can compare to the path and only leave those that are included in the plath
-		let ResponsesArray = Object.entries(selectedAnswers).filter(([key]) => path.includes(parseInt(key)))
+            setPath(updatedPath)
+        }
 
-		// Here we convert it back to an object
-		let ResultResponses = Object.fromEntries(ResponsesArray)
+        setActiveQuestion(previousQuestion)
 
+    }
 
-		console.log(ResultResponses)
-		// Foreach question we need to insert the selected answers in the database
-		for (let question in ResultResponses) {
-			AddAnswersToDb(ResultResponses[question])
-		}
-	}
 
+    function SubmitAnswers() {
 
-	async function AddAnswersToDb(response) {
+        // Converts the object to an array of [key, value]. We do this so we can compare to the path and only leave those that are included in the plath
+        let ResponsesArray = Object.entries(selectedAnswers).filter(([key]) => path.some((question) => question.id === parseInt(key)))
 
-		try {
+        console.log(ResponsesArray)
 
-			// Change properties of object so we can add directly to database
 
-			let newArray = response.map(answer => {
-				return { questionId: answer.questionId, answerId: answer.id }
-			})
 
-			const { error } = await supabase
-				.from('QuestionAnswer2')
-				.insert(newArray)
+        // Here we convert it back to an object
+        let ResultResponses = Object.fromEntries(ResponsesArray)
 
+        // Foreach question we need to insert the selected answers in the database
+        for (let question in ResultResponses) {
+            AddAnswersToDb(ResultResponses[question])
+        }
+    }
 
-			if (error) throw error;
-		}
 
-		catch (error) {
-			console.log(error)
-		}
-	}
+    async function AddAnswersToDb(response) {
 
+        try {
 
+            // Change properties of object so we can add directly to database
 
-	/// HELPER FUNCTIONS ///
-	function FindFirstQuestion(section) {
-		return section.Questions2.find(question => question.questionOrder === 1)
-	}
+            let newArray = response.map(answer => {
+                return { questionId: answer.questionId, answerId: answer.id }
+            })
 
+            const { error } = await supabase
+                .from('QuestionAnswer2')
+                .insert(newArray)
 
-	function FindSectionById(id) {
-		return survey.Sections2.find(section => section.id === id)
-	}
 
+            if (error) throw error;
+        }
 
+        catch (error) {
+            console.log(error)
+        }
+    }
 
 
-	return (
-		<div className="flex justify-center w-full h-[100%]">
 
-			<div className="w-8/12 h-[50%]">
-				<div className="flex justify-end mt-6">
+    /// HELPER FUNCTIONS ///
+    function FindFirstQuestion(section) {
+        return section.Questions2.find(question => question.questionOrder === 1)
+    }
 
-					<Link to={`/Editor/${id}`}>
-						<IconButton icon={FaPen} onClick={() => { }} className={' text-3xl '} />
-					</Link>
-				</div>
 
+    function FindSectionById(id) {
+        return survey?.Sections2.find(section => section.id === id)
+    }
 
 
-				<div className="h-full mt-4 border border-gray-dark rounded-xl shadow-xl p-10 text-2xl">
+    function FindSectionByOrder(order) {
+        return survey?.Sections2.find(section => section.sectionOrder === order)
+    }
 
-					<div className="flex items-center justify-between">
 
 
-						{
+    async function sendSurveyCompletion() {
 
-							surveyLogo && surveyStyle ?
-								<div className={`${surveyStyle.logoPosition === 'end' ? 'order-1' : 'order-0'}`}>
-									<SurveyLogo logo={surveyLogo} surveyStyle={surveyStyle} />
-								</div> : null
-						}
 
+        const url = 'http://localhost:8000/functions/v1/notifySurveyOwner';
 
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6InhuU00wWStYQTlIYm50b3IiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzA0NjE3NzUxLCJpYXQiOjE3MDQ2MTQxNTEsImlzcyI6Imh0dHBzOi8veWFod2NtcGVkYWhxa29leXVscGsuc3VwYWJhc2UuY28vYXV0aC92MSIsInN1YiI6ImNiMDE3OTM0LTI5ZGUtNDVhNC1iMjc0LTcxYThkOWI1ZDlmMyIsImVtYWlsIjoiemFrYXJpYS5ib3VobGFsYUBzdHVkZW50Lm9kaXNlZS5iZSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnt9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzA0NTU0NDE0fV0sInNlc3Npb25faWQiOiJlZGMxMjQ4NS1hMmFlLTRlMTctOTM2Mi1lZTg5YjU1NmMxMzUifQ.-8mm3Io79r8nxtfQuF8y_39nnBP-v8HpYCK15YfZ_sM" // Only if authentication is needed
+                },
+                body: JSON.stringify({ owner_id: survey.ownerId, survey: survey, surveyCompleter: user })
+            });
 
-						<h1 className={`
-							mb-8
-							text-${surveyStyle?.titleFontSize} 
-							${surveyStyle?.titleFontFamily} 
-							${surveyStyle?.titleIsBold ? "font-bold" : "font-normal"}
-							${surveyStyle?.titleIsCursive ? "italic" : "not-italic"}
-							${surveyStyle?.titleIsUnderlined ? "underline" : ""}`}
-						>
-							{survey?.title}
-						</h1>
 
-					</div>
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
+            const responseData = await response.json();
 
-					{
-						endOfSurvey ? <div>GEDAAN</div> :
-							<div>
-								<p className={`
-									text-${surveyStyle?.questionFontSize} 
-									${surveyStyle?.questionFontFamily} 
-									${activeQuestion?.isBold ? "font-bold" : "font-normal"}  
-									${activeQuestion?.isCursive ? "italic" : "not-italic"} 
-									${activeQuestion?.isUnderlined ? "underline" : "no-underline"}`}
-								>
-									{activeQuestion?.questionOrder}. {activeQuestion?.questionContent}
-								</p>
 
-								<div className="flex flex-col mt-5">
-									{
-										activeQuestion?.questionKindId === 1 && <RadioButtonGroup key={activeQuestion.id} answers={activeQuestion?.Answers2} onChange={respons => setSelectedAnswers(prev => { return { ...prev, [activeQuestion.id]: respons } })} responses={selectedAnswers[activeQuestion.id]} /> ||
-										activeQuestion?.questionKindId === 2 && <CheckboxGroup key={activeQuestion.id} answers={activeQuestion?.Answers2} onChange={respons => setSelectedAnswers(prev => { return { ...prev, [activeQuestion.id]: respons } })} responses={selectedAnswers[activeQuestion.id]} />
-									}
-								</div>
-							</div>
-					}
+            if(responseData.status === "FAILED") throw new Error("Error");
 
-				</div>
-				<div className="flex items-center gap-3 mt-5">
-					<Button disabled={disablePrevious} onClick={PreviousQuestion} size="lg" className="w-40 bg-gray-light border-primary-normal text-primary-normal">Vorige</Button>
-					<Button disabled={disableNext} onClick={NextQuestion} size="lg" className="w-40 bg-primary">{endOfSurvey ? "Verzenden" : "Volgende"}</Button>
-				</div>
-			</div>
-		</div>
-	);
+
+        } catch (error) {
+            console.error("Error sending request:", error);
+        }
+    }
+
+
+
+
+    return (
+        <div className="flex justify-center w-full h-[calc(100vh-5rem)]">
+
+            <div className="w-full lg:w-8/12 lg:h-[70%] ">
+                {isOwner &&
+                    <div className="hidden lg:flex justify-end mt-6 text-3xl">
+                        <Link to={`/Editor/${id}`}>
+                            <FaPen className="text-gray-darker" />
+                        </Link>
+                    </div>
+                }
+
+
+
+                {endOfSurvey ? isOwner ? <Navigate to={`/Editor/${id}`} /> : <SurveyCompletion surveyId={id} userId={user.id} onRetake={InitializeSurvey} /> :
+                    <div style={{
+                        backgroundImage: `url(${survey?.background})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
+                    }}
+                        className="relative h-full border border-gray-dark lg:rounded-xl shadow-xl  text-2xl p-10 lg:mt-5  overflow-hidden dark:border-dark-border"
+                    >
+
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)', // Adjust the color and opacity as needed
+                            zIndex: 1
+                        }}></div>
+
+                        <div className="relative z-20 h-full">
+
+                            {isOwner &&
+                                <div className="flex lg:hidden justify-end mt-6 text-3xl">
+                                    <Link to={`/Editor/${id}`}>
+                                        <FaPen className="text-gray-darker" />
+                                    </Link>
+                                </div>
+                            }
+                            <div className="flex items-center justify-between  mt-3">
+
+
+                                {
+
+                                    survey?.logo && surveyStyle ?
+                                        <div className={`${surveyStyle.logoPosition === 'end' ? 'order-1' : 'order-0'}`}>
+                                            <SurveyLogo logo={survey?.logo} surveyStyle={surveyStyle} />
+                                        </div> : null
+                                }
+
+
+
+                                <h1 style={{ color: surveyStyle?.titleColor }} className={`
+                                        text-end
+                                        
+                                        text-${surveyStyle?.titleFontSize} 
+                                        ${surveyStyle?.titleFontFamily} 
+                                        ${surveyStyle?.titleIsBold ? "font-bold" : "font-normal"}
+                                        ${surveyStyle?.titleIsCursive ? "italic" : "not-italic"}
+                                        ${surveyStyle?.titleIsUnderlined ? "underline" : ""}
+                                        `}
+                                >
+                                    {survey?.title}
+                                </h1>
+
+                            </div>
+
+
+                            <div style={{ color: surveyStyle?.questionColor }} className="mt-10">
+
+                                {
+
+                                    <div className="">
+                                        <p
+                                            className={`
+                                                text-${surveyStyle?.questionFontSize} 
+                                                ${surveyStyle?.questionFontFamily} 
+                                                ${activeQuestion?.isBold ? "font-bold" : "font-normal"}  
+                                                ${activeQuestion?.isCursive ? "italic" : "not-italic"} 
+                                                ${activeQuestion?.isUnderlined ? "underline" : "no-underline"}`}
+
+                                        >
+                                            {activeQuestion?.questionOrder}. {activeQuestion?.questionContent}
+                                        </p>
+
+
+                                        <div className="flex flex-col mt-5">
+
+                                            {
+
+                                                activeQuestion?.questionKindId === 1 && <RadioButtonGroup key={activeQuestion?.id} answers={activeQuestion?.Answers2} onChange={respons => setSelectedAnswers(prev => { return { ...prev, [activeQuestion?.id]: respons } })} responses={selectedAnswers[activeQuestion?.id]} color={surveyStyle?.questionColor} /> ||
+                                                activeQuestion?.questionKindId === 2 && <CheckboxGroup key={activeQuestion.id} answers={activeQuestion?.Answers2} onChange={respons => setSelectedAnswers(prev => { return { ...prev, [activeQuestion.id]: respons } })} responses={selectedAnswers[activeQuestion.id]} color={surveyStyle?.questionColor} />
+                                            }
+                                        </div>
+
+                                    </div>
+                                }
+                            </div>
+
+                            <div className="hidden lg:block absolute bottom-0 w-full">
+
+                                <p style={{ color: surveyStyle?.footerColor }} className={`
+                                        text-end
+                                        
+                                        text-${surveyStyle?.footerFontSize} 
+                                        ${surveyStyle?.footerFontFamily} 
+                                        ${surveyStyle?.footerIsBold ? "font-bold" : "font-normal"}
+                                        ${surveyStyle?.footerIsCursive ? "italic" : "not-italic"}
+                                        ${surveyStyle?.footerIsUnderlined ? "underline" : ""}
+                                        `}
+                                >
+                                    {survey?.footer}
+                                </p>
+                            </div>
+
+                        </div>
+
+
+                        <div className="z-20 flex lg:hidden items-center w-10/12 gap-3 absolute bottom-20">
+                            <Button disabled={disablePrevious} onClick={PreviousQuestion} size="lg" className="w-full md:w-40 bg-gray-light border-primary-normal text-primary-normal dark:bg-dark-secondary">Vorige</Button>
+                            <Button disabled={disableNext} onClick={NextQuestion} size="lg" className="w-full md:w-40 bg-primary">{endOfSurvey ? "Verzenden" : "Volgende"}</Button>
+                        </div>
+
+                    </div>
+
+                }
+
+                {
+                    !endOfSurvey && <div className="hidden lg:flex items-center gap-3 mt-5">
+                        <Button disabled={disablePrevious} onClick={PreviousQuestion} size="lg" className="w-40 bg-gray-light border-primary-normal text-primary-normal dark:bg-dark-secondary">Vorige</Button>
+                        <Button disabled={disableNext} onClick={NextQuestion} size="lg" className="w-40 bg-primary">{endOfSurvey ? "Verzenden" : "Volgende"}</Button>
+                    </div>
+                }
+
+            </div>
+        </div>
+    );
 }
 
 

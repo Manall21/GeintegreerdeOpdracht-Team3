@@ -1,7 +1,5 @@
 function Answers(){
-    return (
-    <div>test</div>
-    );
+    return (<div>dl</div>);
 }
 
 

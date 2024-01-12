@@ -26,7 +26,7 @@ function ToolBarSide({className}) {
     return (
         <div className={`${className} relative`}>
 
-            <div className="bg-white border rounded-lg shadow-lg absolute  transition-all ease-in-out delay-100"
+            <div className="bg-white border dark:bg-dark-default dark:border-dark-border rounded-lg shadow-lg absolute  transition-all ease-in-out delay-100"
                 style={{ top: `${scrollOffset + 225}px` }}
             >
                 <ToolBarCommon/>

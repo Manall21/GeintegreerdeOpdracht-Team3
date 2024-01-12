@@ -1,7 +1,7 @@
 import { Radio } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
 
-function RadioButtonGroup({ answers, onChange, responses = [] }) {
+function RadioButtonGroup({ answers, onChange, responses = [], color }) {
 
     const [selectedOption, setSelectedOption] = useState(responses);
 
@@ -26,7 +26,9 @@ function RadioButtonGroup({ answers, onChange, responses = [] }) {
             <div className="flex flex-col">
                 {
                     answers.map((answer) => {
-                        return <Radio checked={selectedOption[0]?.id === answer.id} name="answer" label={answer.answerContent} color="green" key={answer.id} onChange={() => { HandleChange(answer) }} />
+                        return <Radio labelProps={{
+                            style: { color: color },
+                        }} checked={selectedOption[0]?.id === answer.id} name="answer" label={answer.answerContent} color="blue-gray" key={answer.id} onChange={() => { HandleChange(answer) }} />
                     })
                 }
             </div>

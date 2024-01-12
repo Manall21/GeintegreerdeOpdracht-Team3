@@ -1,36 +1,30 @@
-import { FaPlusCircle } from "react-icons/fa";
-import ProjectStyleBox from "./ProjectStyleBox";
 import { useEffect, useState } from "react";
-import EditLogo from "./EditLogo";
 import { useSelector } from "react-redux";
-import EditFont from "./EditFont";
+import StyleSettings from "./StyleSettings";
+import StyleThemes from "./StyleThemes";
 
 
 
 function ProjectStyles({ className }) {
 
-    const [selectedBox, setSelectedBox] = useState(null);
+    const [selectedBox, setSelectedBox] = useState('Settings');
 
-    const surveyLogo = useSelector(state => state.surveys.logo);
+    const survey = useSelector(state => state.surveys.survey);
+    const surveyStyle = useSelector(state => state.surveys.surveyStyles);
 
 
     function RenderComponent() {
         switch (selectedBox) {
-            case "Logo":
-                return <EditLogo onBack={onBack} />
-            case "Font":
-                return <EditFont onBack={onBack} />
+            case "Settings":
+                return <StyleSettings/>
+            case "Themes":
+                return <StyleThemes surveyId={survey.id} surveyStyle={surveyStyle} onChange={()=> setSelectedBox('Settings')} />
             default:
                 break;
         }
     }
 
 
-
-
-    function onBack() {
-        setSelectedBox(null)
-    }
 
 
     function StyleElement(element) {
@@ -41,30 +35,25 @@ function ProjectStyles({ className }) {
 
     return (
         <div className={`${className}`}>
-            <div className="flex gap-3 justify-center border border-gray-normal p-4">
-                <h2>Instellingen</h2>
-                <h2>Thema's</h2>
+            <div className="shadow-lg h-full">
+                <div className="flex gap-3 justify-center border border-gray-normal dark:border-dark-border dark:text-dark-text h-16 relative">
+                    <h2 className=" flex items-center justify-center relative w-3/12 cursor-pointer" onClick={() => StyleElement("Settings")} >
+                        Instellingen
+                        {<span className={`${selectedBox === 'Settings' ? 'opacity-100': 'opacity-0'} absolute left-0 right-0 bottom-0 h-[3px] bg-primary transition-opacity`} ></span>}
+                    </h2>
+
+                    <h2 className=" flex items-center justify-center relative w-3/12  cursor-pointer" onClick={() => StyleElement("Themes")} >
+                        Thema's
+                        {<span className={`${selectedBox === 'Themes' ? 'opacity-100': 'opacity-0'} absolute left-0 right-0 bottom-0 h-[3px] bg-primary transition-opacity`} ></span>}
+                    </h2>
+                </div>
+
+                {
+                    selectedBox ? <div className="bg-white">{RenderComponent()}</div> :
+                        null
+                }
             </div>
 
-            {
-                selectedBox ? <div className="bg-third">{RenderComponent()}</div> :
-                    <div className="grid grid-cols-2">
-                        <ProjectStyleBox
-                            className={'border'}
-                            title={"Uw logo"}
-                            content={<img className="w-4/12" src={surveyLogo} alt='logo'></img> || <FaPlusCircle className="text-3xl text-gray-400" />}
-                            onClick={() => StyleElement("Logo")} />
-                        <ProjectStyleBox
-                            className={'border border-s-0'} title={"Voettekst"} />
-                        <ProjectStyleBox
-                            className={'border border-t-0'}
-                            title={"Teksstijl"}
-                            content={<p className="text-5xl text-gray-400">Aa</p>}
-                            onClick={() => StyleElement("Font")} />
-
-                        <ProjectStyleBox className={'border border-s-0 border-t-0'} title={"Thema"} />
-                    </div>
-            }
         </div>
     );
 }

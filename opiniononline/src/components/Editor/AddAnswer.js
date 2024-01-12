@@ -1,11 +1,14 @@
 import { Checkbox, Radio } from "@material-tailwind/react";
 import { supabase } from "../../supabaseClient";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { addAnswer } from "../../slices/surveySlice";
 
 function AddAnswer({ question, answersCount }) {
 
     const [isSaving, setIsSaving] = useState(false); // Add state to track saving status
 
+    const dispatch = useDispatch();
 
     async function InsertAnswerIntoDb() {
         if (isSaving) {
@@ -15,29 +18,19 @@ function AddAnswer({ question, answersCount }) {
         setIsSaving(true);
 
         try {
-            // Checks if there is a next section.
-            const { data, error } = await supabase.from('Sections2').select('id').eq('id', question.sectionId + 1).maybeSingle();
+
 
             let answer = { questionId: question.id, answerContent: `Optie ${answersCount + 1}`, nextSectionId: null, orderNr: answersCount + 1 }
 
-            if (error) throw error;
-
-            // If there is a next section available, it assigns the sectionId to the nextSectionId prop of answer
-            if (data) {
-                answer.nextSectionId = data.id;
-            }
-
-            const { insertError } = await supabase
+            const { error } = await supabase
                 .from('Answers2')
-                .insert(answer);
+                .insert(answer)
+                .select()
+                .single();
 
-
-
-            if (insertError) throw insertError
+            if (error) throw error
 
             setIsSaving(false);
-
-
         }
         catch (error) {
             setIsSaving(false);
@@ -50,7 +43,7 @@ function AddAnswer({ question, answersCount }) {
     }
 
     return (
-        <div className="flex items-center mt-2 gap-3">
+        <div className="flex items-center mt-2 gap-3 dark:text-dark-text">
             {
                 question.questionKindId === 1 && <Radio className='mb-3' color="green" disabled /> ||
                 question.questionKindId === 2 && <Checkbox className='mb-3' color="green" disabled /> ||

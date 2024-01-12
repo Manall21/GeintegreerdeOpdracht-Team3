@@ -1,7 +1,7 @@
 import { Checkbox } from "@material-tailwind/react";
 import { useEffect, useState } from "react";
 
-function CheckboxGroup({ answers, onChange, responses = [] }) {
+function CheckboxGroup({ answers, onChange, responses = [], color }) {
 
     const [selectedOptions, setSelectedOptions] = useState(responses);
 
@@ -31,7 +31,9 @@ function CheckboxGroup({ answers, onChange, responses = [] }) {
         <div className="flex flex-col">
             {
                 answers.map((answer) => {
-                    return <Checkbox checked={selectedOptions?.includes(answer)} name="answer" label={answer.answerContent} color="green" key={answer.id} onChange={() => { HandleChange(answer) }} />
+                    return <Checkbox labelProps={{
+                        style: { color: color },
+                    }} checked={selectedOptions?.includes(answer)} name="answer" label={answer.answerContent} color="green" key={answer.id} onChange={() => { HandleChange(answer) }} />
                 })
             }
         </div>

@@ -1,18 +1,25 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Login'; // Importeer je CSS-bestand
-import logo from '../Logo.png'; // Pas het pad aan op basis van de locatie van je logo-afbeelding
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import './Login'; 
+import logo from '../Logo.png'; 
 import { supabase } from '../supabaseClient';
 import ForgotPassword from './ForgotPassword';
 import { Input, Button } from "@material-tailwind/react";
 import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { Link } from 'react-router-dom';
+import GoogleLogin from '../components/Account/GoogleLogin';
 
 function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+
+  const [email, setEmail] = useState('zakaria.bouhlala@student.odisee.be');
+  const [password, setPassword] = useState('Iphone00');
+
+
+  const [error, setError] = useState(null)
+
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -30,14 +37,19 @@ function Login() {
         password: password,
       });
 
-      if (user) {
-        // Pass the user data to the "Account.js" page, including UID
-        navigate('/account', { state: { user } });
-      }
-    } catch (error) {
+
+      if (error) throw error
+
+    }
+    catch (error) {
+      setError('Ongeldige inloggegevens.')
+
       console.error('Error signing in:', error.message);
     }
   };
+
+  
+
 
   const handleForgotPasswordClick = () => {
     navigate('/ForgotPasswordPage');
@@ -60,11 +72,9 @@ function Login() {
 
             <form className='text-start' onSubmit={handleSubmit}>
               <div>
-                <label for="email_input" className='text-xl'>Email</label>
+                <label className='text-xl'>Email</label>
                 <Input
                   size="lg"
-                  id="email_input"
-                  name="email_input"
                   placeholder="Voer uw email in"
                   className=" !border-t-blue-gray-200 focus:!border-green-300 mt-1 text-xl !py-6 dark:border-dark-border"
                   labelProps={{
@@ -76,12 +86,10 @@ function Login() {
               </div>
 
               <div className='mt-10'>
-                <label for="password_input" className='text-xl'>Paswoord</label>
+                <label className='text-xl'>Paswoord</label>
                 <Input
                   size="lg"
                   type='password'
-                  id="password_input"
-                  name="password_input"
                   className=" !border-t-blue-gray-200 focus:!border-green-300 mt-1 text-xl !py-6 dark:border-dark-border"
                   labelProps={{
                     className: "before:content-none after:content-none",
@@ -93,18 +101,34 @@ function Login() {
               </div>
 
               <p className='text-end mt-5 text-green-500 font-semibold'>
-                <button onClick={handleForgotPasswordClick} className="cursor-pointer text-green-500 focus:outline-none">
+                <button type='button' onClick={handleForgotPasswordClick} className="cursor-pointer text-green-500 focus:outline-none">
                   Paswoord vergeten?
                 </button>
               </p>
 
 
-              <Button type='submit' id='submit_btn' size='lg' className='w-full mt-8 bg-primary dark:bg-dark-green-normal'>Log in</Button>
+              <p className="text-red-400">{error}</p>
 
-              {/* ... (andere buttons) */}
+              <Button type='submit' onClick={handleSubmit} size='lg' className='w-full mt-8 bg-primary dark:bg-dark-green-normal'>Log in</Button>
+
+              <div class="flex items-center gap-2 mt-5">
+                <hr class="flex-grow"></hr>
+                <span class="">of ga verder met</span>
+                <hr class="flex-grow"></hr>
+              </div>
+
+
+              <div className='mt-5'>
+                <GoogleLogin onError={(error) => setError(error)} />
+
+              </div>
+
+
 
               <p className='text-center mt-4 font-semibold'>
-                <a className='' href='#d'>Hebt u nog geen account? <span className='text-green-500'>Registreer gratis</span></a>
+                <Link className='' to={'/Register'}>Hebt u nog geen account?
+                  <span className='text-green-500'> Registreer gratis</span>
+                </Link>
               </p>
             </form>
           </div>

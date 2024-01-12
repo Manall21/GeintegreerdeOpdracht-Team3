@@ -21,7 +21,7 @@ function ProjectStylesDialog({className}) {
             <IconButton onClick={handleOpen} icon={FaPalette} message={"Stijl aanpassen"} placement="bottom"></IconButton>
             <Dialog open={open} handler={handleOpen} size="xxl">
                 <DialogBody>
-                    <ProjectStyles />
+                    <ProjectStyles/>
                 </DialogBody>
                 <DialogFooter>
                     <Button onClick={handleOpen} size="lg" className="bg-primary">Sluiten</Button>

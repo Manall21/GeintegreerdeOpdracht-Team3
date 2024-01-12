@@ -2,16 +2,32 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import IconButton from "../IconButton";
 import { supabase } from "../../supabaseClient";
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteQuestion } from "../../slices/surveySlice";
 
 
 function DeleteQuestion({ question }) {
 
+    const dispatch = useDispatch();
+
     const [isDeleting, setIsDeleting] = useState(false); // Add state to track saving status
 
+
+    const survey = useSelector(state => state.surveys.survey)
+
+    const canDelete = survey.Sections2.find((section) => section.id === question.sectionId).Questions2.length > 1
+
+
+
     async function DeleteFromDb() {
+
+
         if (isDeleting) {
             return
         }
+
+
+        console.log('EEEE')
 
         setIsDeleting(true);
 
@@ -32,6 +48,31 @@ function DeleteQuestion({ question }) {
 
 
             if (errorUpdate) throw errorUpdate
+
+
+            let instance = new Worker('/workers/FetchSurvey.js');
+
+            const workerPromise = new Promise((resolve, reject) => {
+                instance.onmessage = ({ data }) => {
+                    console.log(data.data);
+                    resolve(data.data); // Resolve the promise with the data received from the worker
+                };
+                instance.onerror = (error) => {
+                    console.error('Worker error:', error);
+                    reject(error); // Reject the promise in case of an error
+                };
+            });
+
+            // Post message to worker
+            instance.postMessage({ action: 'DELETEQUESTION', sections: survey.Sections2, deletedQuestion: question });
+
+            const workerResponse = await workerPromise;
+
+
+            dispatch(deleteQuestion(workerResponse))
+
+
+
             setIsDeleting(false);
 
 
@@ -44,7 +85,7 @@ function DeleteQuestion({ question }) {
     }
 
     return (
-        <IconButton icon={FaRegTrashAlt} className={'m-2 text-4xl bg-white'} onClick={DeleteFromDb} />
+        <IconButton icon={FaRegTrashAlt} className={'m-2 text-4xl'} onClick={() => canDelete && DeleteFromDb()} />
     );
 }
 

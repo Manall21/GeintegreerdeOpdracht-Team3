@@ -6,15 +6,13 @@ module.exports = withMT({
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
-  darkMode:"class",
+  darkMode: "class",
   theme: {
     extend: {
       backgroundColor: {
         'primary': '#92D36E',
         'secondary': '#f7f6f6',
         'third': "#ebebeb",
-
-        
       },
       colors: {
         gray: {
@@ -27,20 +25,19 @@ module.exports = withMT({
           'normal': '#92D36E',
           'light': '#f1f8e9',
         },
-
-
-        dark:{
+        dark: {
           green: {
             "normal": "#547e26",
-            "light":'#283411',
+            "light": '#283411',
           },
-          "default":"#181a1b",
+          "default": "#181a1b",
           "border": "#35393b",
+          "text": "#ffffff",
+          "secondary": "#242526",
+          "third": "#3a3b3c",
         }
       }
     },
   },
   plugins: [],
-  
-}
-)
+});
