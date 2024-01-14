@@ -140,7 +140,7 @@ function Edit() {
 
 
 
-            <ProjectStyles className={'hidden h-[calc(100vh-5rem)] overflow-y-auto sticky top-20 2xl:block w-4/12 p-4 bg-white dark:bg-dark-default dark:text-dark-text dark:border-dark-border text-lg z-19'} />
+            <ProjectStyles id="titleElement" className={'hidden h-[calc(100vh-5rem)] overflow-y-auto sticky top-20 2xl:block w-4/12 p-4 bg-white dark:bg-dark-default dark:text-dark-text dark:border-dark-border text-lg z-19'} />
 
 
             <div
@@ -209,7 +209,7 @@ function Edit() {
                                 }
 
                                 <div style={{ color: surveyStyle?.titleColor }} className="mt-10">
-                                    < Input
+                                    < Input id="titleElement"
                                         value={updatedSurvey?.title}
                                         onChange={(newValue) => setUpdatedSurvey(prev => ({ ...prev, title: newValue }))}
                                         setStyling={true}
@@ -250,7 +250,7 @@ function Edit() {
 
 
                                     <div style={{ color: surveyStyle?.footerColor }} className="mt-10">
-                                        < Input
+                                        < Input 
                                             value={updatedSurvey?.footer}
                                             onChange={(newValue) => setUpdatedSurvey(prev => ({ ...prev, footer: newValue }))}
                                             setStyling={true}

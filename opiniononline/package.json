@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "chai": "^5.0.0",
     "chromedriver": "^120.0.1",
     "date-fns": "^3.2.0",
     "firebase": "^10.7.1",
@@ -30,6 +31,8 @@
     "build": "react-scripts build",
     "test": "cucumber-js",
     "test:login": "cucumber-js features/login.feature",
+    "test:antwoord": "cucumber-js features/antwoord.feature",
+    "test:enquete": "cucumber-js features/enquete.feature",
     "eject": "react-scripts eject",
     "unit": "jest"
   },

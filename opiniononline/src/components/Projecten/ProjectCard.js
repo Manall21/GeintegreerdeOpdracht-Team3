@@ -165,20 +165,21 @@ function ProjectCard({ survey, isActive, onActivePicker }) {
 
 
                 <div className="flex items-center justify-between py-1 px-3 bg-gray-normal border-t border-gray-dark dark:bg-dark-secondary  dark:border-dark-border rounded-b-xl">
-                    <div className="flex items-center gap-2 dark:text-dark-text">
+                    <div id="statusPickerDropdown" className="flex items-center gap-2 dark:text-dark-text">
 
                         <div className={`w-4 h-4 ${surveyStatus?.color} rounded-2xl`}></div>
                         <p className="text-lg">{surveyStatus?.name}</p>
 
                     </div>
-                    <IconButton icon={FaChevronDown} onClick={() => onActivePicker()} className={'dark:text-dark-text'}/>
+                    
+                    <IconButton id="statusPickerDropdown" icon={FaChevronDown} onClick={() => onActivePicker()} className={'dark:text-dark-text'}/>
 
                 </div>
 
 
             </div>
 
-            <StatusPicker onChangeStatus={(statusId) => setUpdatedSurvey(prev => ({ ...prev, statusId: statusId }))} active={isActive} />
+            <StatusPicker  id="statusPickerDropdown" onChangeStatus={(statusId) => setUpdatedSurvey(prev => ({ ...prev, statusId: statusId }))} active={isActive} />
 
             <DuplicateProjectModal surveyToCopy={updatedSurvey} open={isDuplicateModalOpen} onClose={() => setIsDuplicateModalOpen(false)} />
 

@@ -74,6 +74,7 @@ function Login() {
               <div>
                 <label className='text-xl'>Email</label>
                 <Input
+                id="email_input"
                   size="lg"
                   placeholder="Voer uw email in"
                   className=" !border-t-blue-gray-200 focus:!border-green-300 mt-1 text-xl !py-6 dark:border-dark-border"
@@ -88,6 +89,7 @@ function Login() {
               <div className='mt-10'>
                 <label className='text-xl'>Paswoord</label>
                 <Input
+                 id="password_input"
                   size="lg"
                   type='password'
                   className=" !border-t-blue-gray-200 focus:!border-green-300 mt-1 text-xl !py-6 dark:border-dark-border"
@@ -101,15 +103,17 @@ function Login() {
               </div>
 
               <p className='text-end mt-5 text-green-500 font-semibold'>
+
                 <button type='button' onClick={handleForgotPasswordClick} className="cursor-pointer text-green-500 focus:outline-none">
                   Paswoord vergeten?
+                  
                 </button>
               </p>
 
 
               <p className="text-red-400">{error}</p>
 
-              <Button type='submit' onClick={handleSubmit} size='lg' className='w-full mt-8 bg-primary dark:bg-dark-green-normal'>Log in</Button>
+              <Button id="submit_btn" type='submit' onClick={handleSubmit} size='lg' className='w-full mt-8 bg-primary dark:bg-dark-green-normal'>Log in</Button>
 
               <div class="flex items-center gap-2 mt-5">
                 <hr class="flex-grow"></hr>

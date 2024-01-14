@@ -4,14 +4,14 @@ function StatusPicker({ onChangeStatus, active }) {
     const statuses = useSelector(state => state.surveys.surveyStatuses)
 
     return (
-        <div className={`absolute w-full z-10 transition-all duration-200 ease-in-out ${active ? 'translate-y-0 opacity-100' : 'hidden'}`}>
-            <div className="bg-white dark:bg-dark-secondary border dark:border-dark-border shadow-lg rounded-md mx-2">
-                <ul>
+        <div className={`absolute w-full z-10 transition-all duration-200 ease-in-out ${active ? 'translate-y-0 opacity-100' : 'hidden'}  id =statusPickerDropdown `}>
+            <div  className="bg-white dark:bg-dark-secondary border dark:border-dark-border shadow-lg rounded-md mx-2">
+                <ul >
                     {
                         statuses.map((status) => (
                             <li 
                                 onClick={() => onChangeStatus(status.id)} 
-                                key={status.id} 
+                                key={status.id} id={`statusOption-${status.id}`}
                                 className="mt-2 px-5 py-1 hover:bg-gray-200 dark:hover:bg-dark-third"
                             >
                                 <div className="flex items-center gap-5">
